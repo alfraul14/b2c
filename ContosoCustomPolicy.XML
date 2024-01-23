@@ -42,6 +42,18 @@
                     <Enumeration Text="Personal Account" Value="personal" SelectByDefault="false"/>
                 </Restriction>
             </ClaimType>
+            <ClaimType Id="email">
+                <DisplayName>Email Address</DisplayName>
+                <DataType>string</DataType>
+                <DefaultPartnerClaimTypes>
+                    <Protocol Name="OpenIdConnect" PartnerClaimType="email"/>
+                </DefaultPartnerClaimTypes>
+                <UserHelpText>Your email address. </UserHelpText>
+                <UserInputType>TextBox</UserInputType>
+                <Restriction>
+                    <Pattern RegularExpression="^[a-zA-Z0-9.!#$%&amp;&apos;^_`{}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$" HelpText="Please enter a valid email address something like maurice@contoso.com"/>
+                </Restriction>
+            </ClaimType>
             </ClaimsSchema>
             <ClaimsTransformations>
                 <ClaimsTransformation Id="GenerateRandomObjectIdTransformation" TransformationMethod="CreateRandomString">
@@ -119,11 +131,14 @@
                             <DisplayClaim ClaimTypeReferenceId="givenName" Required="true"/>
                             <DisplayClaim ClaimTypeReferenceId="surname" Required="true"/>
                             <DisplayClaim ClaimTypeReferenceId="accountType" Required="true"/>
+                            <DisplayClaim ClaimTypeReferenceId="email" Required="true"/>
+
                         </DisplayClaims>
                         <OutputClaims>
                             <OutputClaim ClaimTypeReferenceId="givenName"/>
                             <OutputClaim ClaimTypeReferenceId="surname"/>
                             <OutputClaim ClaimTypeReferenceId="accountType"/>
+                            <OutputClaim ClaimTypeReferenceId="email"/>
 
                         </OutputClaims>
                     </TechnicalProfile>
@@ -193,6 +208,8 @@
                     <OutputClaim ClaimTypeReferenceId="displayName"/>
                     <OutputClaim ClaimTypeReferenceId="message"/>
                     <OutputClaim ClaimTypeReferenceId="accountType" />
+                    <OutputClaim ClaimTypeReferenceId="email" />
+
                 </OutputClaims>
                 <SubjectNamingInfo ClaimType="sub"/>
             </TechnicalProfile>
