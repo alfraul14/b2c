@@ -62,8 +62,23 @@
                 <UserHelpText>Enter password</UserHelpText>
                 <UserInputType>Password</UserInputType>
                 <PredicateValidationReference Id="StrongPassword" />
+            </ClaimType>
+            <ClaimType Id="reenterPassword">
+                <DisplayName>Confirm new password</DisplayName>
+                <DataType>string</DataType>
+                <AdminHelpText>Confirm new password</AdminHelpText>
+                <UserHelpText>Reenter password</UserHelpText>
+                <UserInputType>Password</UserInputType>
+            </ClaimType> 
+            <ClaimType Id="domain">
+                <DataType>string</DataType>
+              </ClaimType>
+          
+              <ClaimType Id="domainStatus">
+                <DataType>string</DataType>
               </ClaimType>
             </ClaimsSchema>
+
             <Predicates>
             <Predicate Id="IsLengthBetween8And64" Method="IsLengthRange" HelpText="The password must be between 8 and 64 characters.">
                 <Parameters>
@@ -177,6 +192,7 @@
                     </PredicateGroups>
                 </PredicateValidation>
               </PredicateValidations>
+            
             <ClaimsTransformations>
                 <ClaimsTransformation Id="GenerateRandomObjectIdTransformation" TransformationMethod="CreateRandomString">
                     <InputParameters>
@@ -210,7 +226,29 @@
                     <OutputClaims>
                     <OutputClaim ClaimTypeReferenceId="message" TransformationClaimType="outputClaim"/>
                     </OutputClaims>
-                </ClaimsTransformation> 
+                </ClaimsTransformation>
+                <ClaimsTransformation Id="GetDomainFromEmail" TransformationMethod="ParseDomain">
+                    <InputClaims>
+                        <InputClaim ClaimTypeReferenceId="email" TransformationClaimType="emailAddress"/>
+                    </InputClaims>
+                    <OutputClaims>
+                        <OutputClaim ClaimTypeReferenceId="domain" TransformationClaimType="domain"/>
+                    </OutputClaims>
+                </ClaimsTransformation>
+                <ClaimsTransformation Id="LookupDomain" TransformationMethod="LookupValue">
+                    <InputClaims>
+                        <InputClaim ClaimTypeReferenceId="domain" TransformationClaimType="inputParameterId"/>
+                    </InputClaims>
+                    <InputParameters>
+                        <InputParameter Id="contoso.com" DataType="string" Value="valid"/>
+                        <InputParameter Id="fabrikam.com" DataType="string" Value="valid"/>
+                        <InputParameter Id="woodgrove.com" DataType="string" Value="valid"/>
+                        <InputParameter Id="errorOnFailedLookup" DataType="boolean" Value="true"/>
+                    </InputParameters>
+                    <OutputClaims>
+                        <OutputClaim ClaimTypeReferenceId="domainStatus" TransformationClaimType="outputClaim"/>
+                    </OutputClaims>
+                </ClaimsTransformation>
             </ClaimsTransformations>
             <ContentDefinitions>
                 <ContentDefinition Id="SelfAssertedContentDefinition">
@@ -248,6 +286,7 @@
                         <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.SelfAssertedAttributeProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"/>
                         <Metadata>
                             <Item Key="ContentDefinitionReferenceId">SelfAssertedContentDefinition</Item>
+                            <Item Key="LookupNotFound">The provided email address isn't a valid Contoso Employee email.</Item>
                         </Metadata>
                         <DisplayClaims>
                             <DisplayClaim ClaimTypeReferenceId="givenName" Required="true"/>
@@ -255,6 +294,7 @@
                             <DisplayClaim ClaimTypeReferenceId="accountType" Required="true"/>
                             <DisplayClaim ClaimTypeReferenceId="email" Required="true"/>
                             <DisplayClaim ClaimTypeReferenceId="password" Required="true"/>
+                            <DisplayClaim ClaimTypeReferenceId="reenterPassword" Required="true"/>
                         </DisplayClaims>
                         <OutputClaims>
                             <OutputClaim ClaimTypeReferenceId="givenName"/>
@@ -262,7 +302,32 @@
                             <OutputClaim ClaimTypeReferenceId="accountType"/>
                             <OutputClaim ClaimTypeReferenceId="email"/>
                             <OutputClaim ClaimTypeReferenceId="password"/>
+                            <OutputClaim ClaimTypeReferenceId="reenterPassword"/>
                         </OutputClaims>
+                        <ValidationTechnicalProfiles>
+                            <ValidationTechnicalProfile ReferenceId="CheckCompanyDomain">
+                                <Preconditions>
+                                    <Precondition Type="ClaimEquals" ExecuteActionsIf="false">
+                                        <Value>accountType</Value>
+                                        <Value>work</Value>
+                                        <Action>SkipThisValidationTechnicalProfile</Action>
+                                    </Precondition>
+                                </Preconditions>
+                            </ValidationTechnicalProfile>
+                        </ValidationTechnicalProfiles>
+                    </TechnicalProfile>
+                    <TechnicalProfile Id="CheckCompanyDomain">
+                        <DisplayName>Check Company validity </DisplayName>
+                        <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.ClaimsTransformationProtocolProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"/>
+                        <InputClaimsTransformations>
+                            <InputClaimsTransformation ReferenceId="GetDomainFromEmail"/>
+                        </InputClaimsTransformations>
+                        <OutputClaims>
+                            <OutputClaim ClaimTypeReferenceId="domain"/>
+                        </OutputClaims>
+                        <OutputClaimsTransformations>
+                            <OutputClaimsTransformation ReferenceId="LookupDomain"/>
+                        </OutputClaimsTransformations>
                     </TechnicalProfile>
                 </TechnicalProfiles>
             </ClaimsProvider>
