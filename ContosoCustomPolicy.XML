@@ -294,6 +294,24 @@
         </BuildingBlocks>
         <ClaimsProviders><!--Claims Providers Here-->
             <ClaimsProvider>
+                <DisplayName>HTTP Request Technical Profiles</DisplayName>
+                <TechnicalProfiles>
+                    <TechnicalProfile Id="ValidateAccessCodeViaHttp">
+                        <DisplayName>Check that the user has entered a valid access code by using Claims Transformations</DisplayName>
+                        <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.RestfulProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+                        <Metadata>
+                            <Item Key="ServiceUrl">https://contosodd/validate-accesscode</Item>
+                            <Item Key="SendClaimsIn">Body</Item>
+                            <Item Key="AuthenticationType">None</Item>
+                            <Item Key="AllowInsecureAuthInProduction">true</Item>
+                        </Metadata>
+                        <InputClaims>
+                            <InputClaim ClaimTypeReferenceId="accessCode" PartnerClaimType="accessCode" />
+                        </InputClaims>
+                    </TechnicalProfile>
+                </TechnicalProfiles>
+            </ClaimsProvider>
+            <ClaimsProvider>
                 <DisplayName>Technical Profiles to collect user's access code</DisplayName>
                 <TechnicalProfiles>
                     <TechnicalProfile Id="AccessCodeInputCollector">
@@ -313,6 +331,8 @@
                         </OutputClaims>
                         <ValidationTechnicalProfiles>
                             <ValidationTechnicalProfile ReferenceId="CheckAccessCodeViaClaimsTransformationChecker"/>
+                                                        <!-- <ValidationTechnicalProfile ReferenceId="ValidateAccessCodeViaHttp"/> -->
+
                         </ValidationTechnicalProfiles>
                         <EnabledForUserJourneys>OnClaimsExistence</EnabledForUserJourneys>
                     </TechnicalProfile>
